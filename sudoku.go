@@ -7,22 +7,58 @@ import (
 	"fmt"
 	// "io"
 	// "os"
+	"errors"
 	"strconv"
 	"strings"
 )
 
-func readMatrix(path string) [][]int {
-	content, err := ioutil.ReadFile(path)
+type Sudoku struct {
+	matrix        [][]int
+	solved        bool
+	solutionCount int
+}
 
-	// fmt.Printf("%#v", string(content))
-
+func NewSudoku(path string) (*Sudoku, error) {
+	s := new(Sudoku)
+	var err error
+	s.matrix, err = readMatrix(path)
 	if err != nil {
-		//Do something
+		panic(err)
 	}
+
+	return s, nil
+}
+
+func (s *Sudoku) GetSolutionsCount() {
+	return s.solutionCount
+}
+
+func (s *Sudoku) registerSolution() {
+	s.solutionCount++
+	s.PrintMatrix()
+	if !s.solved {
+		s.solved = true
+	}
+}
+
+func (s *Sudoku) isSolved() bool {
+	return s.solved
+}
+
+func (s *Sudoku) Solve() {
+	s.bruteforcePosition(0, 0)
+}
+
+func readMatrix(path string) ([][]int, error) {
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
 	lines := strings.Split(string(content), "\r")
 
 	if len(lines) != 9 {
-		panic(fmt.Sprintf("strings.Split: too many rows: %v", len(lines)))
+		return nil, errors.New("Insufficient number of ROWS")
 	}
 
 	matrix := make([][]int, 9, 9)
@@ -31,23 +67,24 @@ func readMatrix(path string) [][]int {
 
 		stringRows := strings.Split(line, " ")
 
-		ints := make([]int, 9)
+		integerRow := make([]int, 9, 9)
 		for j, str := range stringRows {
+
 			val, err := strconv.Atoi(str)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
-			ints[j] = val
+			integerRow[j] = val
 		}
-		matrix[i] = ints
+		matrix[i] = integerRow
 	}
-
-	return matrix
+	return matrix, nil
 }
 
-func isValidPlacement(row, col, val int, matrix [][]int) bool {
-	if validInSquare(row, col, val, matrix) &&
-		validInColumnAndRow(row, col, val, matrix) {
+// Verify that 'val' can be legally placed at (row,col)
+func (s *Sudoku) ValidValueAtPosition(row, col, val int) bool {
+	if s.ValidInSquare(row, col, val) &&
+		s.ValidInColumnAndRow(row, col, val) {
 		// validInRow(row, val, matrix) {
 		return true
 	}
@@ -55,15 +92,13 @@ func isValidPlacement(row, col, val int, matrix [][]int) bool {
 	return false
 }
 
-func validInSquare(row, col, val int, matrix [][]int) bool {
-	// fmt.Printf("validSqaure: row, col = %v, %v", row, col)
+func (s *Sudoku) ValidInSquare(row, col, val int) bool {
 	row, col = int(row/3)*3, int(col/3)*3
-	// fmt.Printf(" => row, col = %v, %v\n", row, col)
 
 	for i := row; i < row+3; i++ {
 		for j := col; j < col+3; j++ {
 			//fmt.Printf("row, col = %v, %v\n", i, j)
-			if matrix[i][j] == val {
+			if s.matrix[i][j] == val {
 				return false
 			}
 		}
@@ -71,73 +106,68 @@ func validInSquare(row, col, val int, matrix [][]int) bool {
 	return true
 }
 
-func validInColumnAndRow(row, col, val int, matrix [][]int) bool {
+func (s *Sudoku) ValidInColumnAndRow(row, col, val int) bool {
 	for i := 0; i < 9; i++ {
-		if matrix[row][i] == val ||
-			matrix[i][col] == val {
+		if s.matrix[row][i] == val ||
+			s.matrix[i][col] == val {
 			return false
 		}
 	}
 	return true
 }
 
-func attemptToPlace(row, col int, matrix [][]int) {
-	// ignore board values
-	if matrix[row][col] != 0 {
-		attemptNextPosition(row, col, matrix)
-
-	} else {
-		// Brute force: try to place values [1...9] on board
+func (s *Sudoku) bruteforcePosition(row, col int) {
+	// we use '0' to indicate a non-filled block
+	if s.matrix[row][col] == 0 {
 		for i := 1; i < 10; i++ {
-			if isValidPlacement(row, col, i, matrix) {
+			if s.ValidValueAtPosition(row, col, i) {
 				// place the value and attempt to solve
-				matrix[row][col] = i
+				s.matrix[row][col] = i
 				// attempt to solve the sudoku with placed value
-				attemptNextPosition(row, col, matrix)
+				s.nextPosition(row, col)
 				// clean up after attempt
-				matrix[row][col] = 0
+				s.matrix[row][col] = 0
 			}
 		}
+	} else {
+		s.nextPosition(row, col)
 	}
-
 }
 
-func attemptNextPosition(row, col int, matrix [][]int) {
+func (s *Sudoku) nextPosition(row, col int) {
+	// we run through the matrix row by row
+	// meaning we only change rows when we're in
+	// the final column
 	if col < 8 {
-		// fmt.Printf("1:at (%v,%v)\n", row, col+1)
-		attemptToPlace(row, col+1, matrix)
+		s.bruteforcePosition(row, col+1)
 	} else {
+		// if we're in the final collumn in the final 
+		// row; we have a solution
+		// - else we iterate to next row and reset the collumn
 		if row < 8 {
-			// fmt.Printf("2: at (%v,%v)\n", row+1, 0)
-			attemptToPlace(row+1, 0, matrix)
+			s.bruteforcePosition(row+1, 0)
 		} else {
-			printMatrix(matrix)
+			s.registerSolution()
 		}
 	}
 }
 
-func printMatrix(matrix [][]int) {
-	for _, row := range matrix {
+func (s *Sudoku) PrintMatrix() {
+	for _, row := range s.matrix {
 		fmt.Println(row)
 	}
 	fmt.Println("")
 }
 
-func solveSudoku(matrix [][]int) {
-	attemptToPlace(0, 0, matrix)
-}
-
 func main() {
-	matrix := readMatrix("solvable88.txt")
 
-	printMatrix(matrix)
+	sudo, err := NewSudoku("solvable88.txt")
 
-	fmt.Println("")
-	// fmt.Println("(3,3) : ")
-	// for i := 1; i < 10; i++ {
-	// 	fmt.Printf("[(%v=%v) ", i, isValidPlacement(3, 3, i, matrix))
-	// }
-	// fmt.Println("]")
+	if err != nil {
+		panic(err)
+	}
+	// matrix := readMatrix()
 
-	solveSudoku(matrix)
+	sudo.Solve()
+	fmt.Printf("\nsolutions: %v", sudo.GetSolutionsCount())
 }
