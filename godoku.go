@@ -24,6 +24,22 @@ func (s *Sudoku) PrintMatrix() {
 	fmt.Println("")
 }
 
+func (s *Sudoku) IsValidBoard() (bool, err) {
+	if s.matrix == nil {
+		return false, fmt.Errorf("Matrix has not been initialized")
+	}
+
+	for i, row := range s.matrix {
+		for j, val := range row {
+			if !s.ValidValueAtPosition(i, j, val) {
+				return false, nil
+			}
+		}
+	}
+
+	return true, nil
+}
+
 func (s *Sudoku) String() string {
 	var buffer bytes.Buffer
 	for _, row := range s.matrix {
