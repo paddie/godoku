@@ -1,13 +1,9 @@
-package main
+package godoku
 
 import (
-	"io/ioutil"
-	// "bufio"
-	// "bytes"
+	"bytes"
 	"fmt"
-	// "io"
-	// "os"
-	"errors"
+	"io/ioutil"
 	"strconv"
 	"strings"
 )
@@ -16,69 +12,63 @@ type Sudoku struct {
 	matrix        [][]int
 	solved        bool
 	solutionCount int
+	print         bool
 }
 
-func NewSudoku(path string) (*Sudoku, error) {
+func NewSudokuFromFile(path string, print bool) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
-	s.matrix, err = readMatrix(path)
+	s.matrix, err = readMatrixFromFile(path)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+
+	s.print = print
 
 	return s, nil
 }
 
-func (s *Sudoku) GetSolutionsCount() {
+func NewSudokuFromString(path string, print bool) (*Sudoku, error) {
+	s := new(Sudoku)
+	var err error
+	s.matrix, err = readMatrixFromString(path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	s.print = print
+	return s, nil
+}
+
+func (s *Sudoku) GetSolutionsCount() int {
 	return s.solutionCount
 }
 
 func (s *Sudoku) registerSolution() {
 	s.solutionCount++
-	s.PrintMatrix()
+	if s.print {
+		s.PrintMatrix()
+	}
 	if !s.solved {
 		s.solved = true
 	}
 }
 
-func (s *Sudoku) isSolved() bool {
+func (s *Sudoku) IsSolved() bool {
 	return s.solved
 }
 
-func (s *Sudoku) Solve() {
+func (s *Sudoku) Solve() error {
+
+	s.solved = false
+
+	if s.matrix == nil {
+		return fmt.Errorf("No matrix has been loaded..")
+	}
 	s.bruteforcePosition(0, 0)
-}
 
-func readMatrix(path string) ([][]int, error) {
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	lines := strings.Split(string(content), "\r")
-
-	if len(lines) != 9 {
-		return nil, errors.New("Insufficient number of ROWS")
-	}
-
-	matrix := make([][]int, 9, 9)
-	for i, line := range lines {
-		//fmt.Printf("%v: %v\n", i, line)
-
-		stringRows := strings.Split(line, " ")
-
-		integerRow := make([]int, 9, 9)
-		for j, str := range stringRows {
-
-			val, err := strconv.Atoi(str)
-			if err != nil {
-				return nil, err
-			}
-			integerRow[j] = val
-		}
-		matrix[i] = integerRow
-	}
-	return matrix, nil
+	return nil
 }
 
 // Verify that 'val' can be legally placed at (row,col)
@@ -152,6 +142,41 @@ func (s *Sudoku) nextPosition(row, col int) {
 	}
 }
 
+func readMatrixFromFile(path string) ([][]int, error) {
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return readMatrixFromString(string(content))
+}
+
+func readMatrixFromString(m string) ([][]int, error) {
+	lines := strings.Split(m, "\n")
+
+	// if len(lines) != 9 {
+	// 	return nil, errors.New("Insufficient number of ROWS")
+	// }
+
+	matrix := make([][]int, 9, 9)
+	for i, line := range lines {
+		//fmt.Printf("%v: %v\n", i, line)
+
+		stringRows := strings.Split(line, " ")
+
+		integerRow := make([]int, 9, 9)
+		for j, str := range stringRows {
+
+			val, err := strconv.Atoi(str)
+			if err != nil {
+				return nil, err
+			}
+			integerRow[j] = val
+		}
+		matrix[i] = integerRow
+	}
+	return matrix, nil
+}
+
 func (s *Sudoku) PrintMatrix() {
 	for _, row := range s.matrix {
 		fmt.Println(row)
@@ -159,15 +184,11 @@ func (s *Sudoku) PrintMatrix() {
 	fmt.Println("")
 }
 
-func main() {
-
-	sudo, err := NewSudoku("solvable88.txt")
-
-	if err != nil {
-		panic(err)
+func (s *Sudoku) String() string {
+	var buffer bytes.Buffer
+	for _, row := range s.matrix {
+		buffer.WriteString(fmt.Sprintf("%v\n", row))
 	}
-	// matrix := readMatrix()
-
-	sudo.Solve()
-	fmt.Printf("\nsolutions: %v", sudo.GetSolutionsCount())
+	buffer.WriteString("\n")
+	return buffer.String()
 }
