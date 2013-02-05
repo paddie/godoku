@@ -34,7 +34,7 @@ const noSolution string = `7 0 8 0 0 0 7 0 0
 
 func TestSolve88(t *testing.T) {
 	// load sudoku
-	s, err := NewSudokuFromString(solvable88, false)
+	s, err := NewSudokuFromString(solvable88, 9, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -47,7 +47,7 @@ func TestSolve88(t *testing.T) {
 
 func TestFail(t *testing.T) {
 	// load sudoku
-	s, err := NewSudokuFromString(noSolution, false)
+	s, err := NewSudokuFromString(noSolution, 9, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -66,7 +66,7 @@ func BenchmarkSolveHard(b *testing.B) {
 	b.StopTimer()
 	// load sudoku
 
-	s, err := NewSudokuFromString(hard, false)
+	s, err := NewSudokuFromString(hard, 9, false)
 	if err != nil {
 		b.Error(err)
 	}
@@ -82,7 +82,7 @@ func BenchmarkSolveFail(b *testing.B) {
 	b.StopTimer()
 	// load sudoku
 
-	s, err := NewSudokuFromString(noSolution, false)
+	s, err := NewSudokuFromString(noSolution, 9, false)
 	if err != nil {
 		b.Error(err)
 	}

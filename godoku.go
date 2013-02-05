@@ -13,33 +13,54 @@ type Sudoku struct {
 	solved        bool
 	solutionCount int
 	print         bool
+	dim           int
 }
-
 type Matrix [][]int
 
-func NewSudokuFromFile(path string, print bool) (*Sudoku, error) {
+func (s *Sudoku) PrintMatrix() {
+	for _, row := range s.matrix {
+		fmt.Println(row)
+	}
+	fmt.Println("")
+}
+
+func (s *Sudoku) String() string {
+	var buffer bytes.Buffer
+	for _, row := range s.matrix {
+		buffer.WriteString(fmt.Sprintf("%v\n", row))
+	}
+	buffer.WriteString("\n")
+	return buffer.String()
+}
+
+func NewSudokuFromFile(path string, dim int, doPrint bool) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
-	s.matrix, err = readMatrixFromFile(path)
+	s.matrix, err = readMatrixFromFile(path, dim)
+
 	if err != nil {
 		return nil, err
 	}
 
-	s.print = print
+	s.dim = dim
+	s.print = doPrint
 
 	return s, nil
 }
 
-func NewSudokuFromString(path string, print bool) (*Sudoku, error) {
+// Assumes a 9x9 Sudoku board
+func NewSudokuFromString(path string, dim int, doPrint bool) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
-	s.matrix, err = readMatrixFromString(path)
+	s.matrix, err = readMatrixFromString(path, dim)
 
 	if err != nil {
 		return nil, err
 	}
 
-	s.print = print
+	s.dim = dim
+	s.print = doPrint
+
 	return s, nil
 }
 
@@ -47,6 +68,8 @@ func (s *Sudoku) GetSolutionsCount() int {
 	return s.solutionCount
 }
 
+// Could potentially make a copy of the matrix at this point
+// to preserve the solution for further processing
 func (s *Sudoku) registerSolution() {
 	s.solutionCount++
 	if s.print {
@@ -61,6 +84,10 @@ func (s *Sudoku) IsSolved() bool {
 	return s.solved
 }
 
+func (s *Sudoku) Dimension() int {
+	return s.dim
+}
+
 func (s *Sudoku) Solve() error {
 
 	s.solved = false
@@ -71,41 +98,6 @@ func (s *Sudoku) Solve() error {
 	s.bruteforcePosition(0, 0)
 
 	return nil
-}
-
-// Verify that 'val' can be legally placed at (row,col)
-func (s *Sudoku) ValidValueAtPosition(row, col, val int) bool {
-	if s.ValidInSquare(row, col, val) &&
-		s.ValidInColumnAndRow(row, col, val) {
-		// validInRow(row, val, matrix) {
-		return true
-	}
-
-	return false
-}
-
-func (s *Sudoku) ValidInSquare(row, col, val int) bool {
-	row, col = int(row/3)*3, int(col/3)*3
-
-	for i := row; i < row+3; i++ {
-		for j := col; j < col+3; j++ {
-			//fmt.Printf("row, col = %v, %v\n", i, j)
-			if s.matrix[i][j] == val {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func (s *Sudoku) ValidInColumnAndRow(row, col, val int) bool {
-	for i := 0; i < 9; i++ {
-		if s.matrix[row][i] == val ||
-			s.matrix[i][col] == val {
-			return false
-		}
-	}
-	return true
 }
 
 func (s *Sudoku) bruteforcePosition(row, col int) {
@@ -126,6 +118,11 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 	}
 }
 
+// Does two things:
+//	1) if the board is in a finished state, calls 
+//		registerSolution() and returns - enables
+//		bruteforcePostion to exhaust every remaining permutation
+//	2) checks wether to move to next column or next row
 func (s *Sudoku) nextPosition(row, col int) {
 	// we run through the matrix row by row
 	// meaning we only change rows when we're in
@@ -144,24 +141,64 @@ func (s *Sudoku) nextPosition(row, col int) {
 	}
 }
 
-func readMatrixFromFile(path string) (Matrix, error) {
+// Verify that 'val' can be legally placed at (row,col)
+// given restrictions in column, row and 3x3 square
+func (s *Sudoku) ValidValueAtPosition(row, col, val int) bool {
+	if s.ValidInSquare(row, col, val) &&
+		s.ValidInColumnAndRow(row, col, val) {
+		// validInRow(row, val, matrix) {
+		return true
+	}
+
+	return false
+}
+
+// Checks that the 'val' does not already occur in the
+// active 3x3 square.
+// TODO: make square validate sudoku boards of random size
+func (s *Sudoku) ValidInSquare(row, col, val int) bool {
+	row, col = int(row/3)*3, int(col/3)*3
+
+	for i := row; i < row+3; i++ {
+		for j := col; j < col+3; j++ {
+			//fmt.Printf("row, col = %v, %v\n", i, j)
+			if s.matrix[i][j] == val {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// Checks if 'val' already occurs in either the row or the column.
+func (s *Sudoku) ValidInColumnAndRow(row, col, val int) bool {
+	for i := 0; i < 9; i++ {
+		if s.matrix[row][i] == val ||
+			s.matrix[i][col] == val {
+			return false
+		}
+	}
+	return true
+}
+
+func readMatrixFromFile(path string, dim int) (Matrix, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	return readMatrixFromString(string(content))
+	return readMatrixFromString(string(content), dim)
 }
 
-func readMatrixFromString(m string) (Matrix, error) {
+func readMatrixFromString(m string, dim int) (Matrix, error) {
 	lines := strings.Split(m, "\n")
-	matrix := make(Matrix, 9, 9)
-	for i, line := range lines {
+	matrix := make(Matrix, dim, dim)
 
-		stringRows := strings.Split(line, " ")
+	for i := 0; i < dim; i++ {
+		stringRows := strings.Split(lines[i], " ")
 
-		integerRow := make([]int, 9, 9)
-		for j, str := range stringRows {
-
+		integerRow := make([]int, dim, dim)
+		for j := 0; j < dim; j++ {
+			str := stringRows[j]
 			val, err := strconv.Atoi(str)
 			if err != nil {
 				return nil, err
@@ -171,20 +208,4 @@ func readMatrixFromString(m string) (Matrix, error) {
 		matrix[i] = integerRow
 	}
 	return matrix, nil
-}
-
-func (s *Sudoku) PrintMatrix() {
-	for _, row := range s.matrix {
-		fmt.Println(row)
-	}
-	fmt.Println("")
-}
-
-func (s *Sudoku) String() string {
-	var buffer bytes.Buffer
-	for _, row := range s.matrix {
-		buffer.WriteString(fmt.Sprintf("%v\n", row))
-	}
-	buffer.WriteString("\n")
-	return buffer.String()
 }
