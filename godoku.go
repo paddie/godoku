@@ -9,11 +9,13 @@ import (
 )
 
 type Sudoku struct {
-	matrix        [][]int
+	matrix        Matrix
 	solved        bool
 	solutionCount int
 	print         bool
 }
+
+type Matrix [][]int
 
 func NewSudokuFromFile(path string, print bool) (*Sudoku, error) {
 	s := new(Sudoku)
@@ -142,7 +144,7 @@ func (s *Sudoku) nextPosition(row, col int) {
 	}
 }
 
-func readMatrixFromFile(path string) ([][]int, error) {
+func readMatrixFromFile(path string) (Matrix, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -150,16 +152,10 @@ func readMatrixFromFile(path string) ([][]int, error) {
 	return readMatrixFromString(string(content))
 }
 
-func readMatrixFromString(m string) ([][]int, error) {
+func readMatrixFromString(m string) (Matrix, error) {
 	lines := strings.Split(m, "\n")
-
-	// if len(lines) != 9 {
-	// 	return nil, errors.New("Insufficient number of ROWS")
-	// }
-
-	matrix := make([][]int, 9, 9)
+	matrix := make(Matrix, 9, 9)
 	for i, line := range lines {
-		//fmt.Printf("%v: %v\n", i, line)
 
 		stringRows := strings.Split(line, " ")
 
