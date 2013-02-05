@@ -55,7 +55,7 @@ const noSolution string = `7 0 8 0 0 0 7 0 0
 
 func TestSolve1(t *testing.T) {
 	// load sudoku
-	s, err := NewSudokuFromString(solvable88, 9, false)
+	s, err := NewSudokuFromString(solvable88, 9)
 	if err != nil {
 		t.Error(err)
 	}
@@ -68,7 +68,7 @@ func TestSolve1(t *testing.T) {
 
 func TestSolve88(t *testing.T) {
 	// load sudoku
-	s, err := NewSudokuFromString(solvable88, 9, false)
+	s, err := NewSudokuFromString(solvable88, 9)
 	if err != nil {
 		t.Error(err)
 	}
@@ -80,7 +80,7 @@ func TestSolve88(t *testing.T) {
 }
 
 func TestBadFormatting(t *testing.T) {
-	s, err := NewSudokuFromString(badFormatting, 9, false)
+	s, err := NewSudokuFromString(badFormatting, 9)
 	if err != nil {
 		t.Error(err)
 	}
@@ -93,7 +93,7 @@ func TestBadFormatting(t *testing.T) {
 
 func TestFail(t *testing.T) {
 	// load sudoku
-	s, err := NewSudokuFromString(noSolution, 9, false)
+	s, err := NewSudokuFromString(noSolution, 9)
 	if err != nil {
 		t.Error(err)
 	}
@@ -106,7 +106,7 @@ func TestFail(t *testing.T) {
 
 func TestInvalidBoard(t *testing.T) {
 	// load sudoku
-	s, err := NewSudokuFromString(invalidBoard, 9, false)
+	s, err := NewSudokuFromString(invalidBoard, 9)
 	if err != nil {
 		t.Error(err)
 	}
@@ -119,7 +119,7 @@ func BenchmarkSolveHard(b *testing.B) {
 	b.StopTimer()
 	// load sudoku
 
-	s, err := NewSudokuFromString(hard, 9, false)
+	s, err := NewSudokuFromString(hard, 9)
 	if err != nil {
 		b.Error(err)
 	}
@@ -135,7 +135,7 @@ func BenchmarkSolveFail(b *testing.B) {
 	b.StopTimer()
 	// load sudoku
 
-	s, err := NewSudokuFromString(noSolution, 9, false)
+	s, err := NewSudokuFromString(noSolution, 9)
 	if err != nil {
 		b.Error(err)
 	}

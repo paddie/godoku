@@ -12,7 +12,7 @@ type Sudoku struct {
 	matrix        Matrix
 	solved        bool
 	solutionCount int
-	print         bool
+	doPrint       bool
 	dim           int
 	solveAll      bool
 }
@@ -50,7 +50,7 @@ func (s *Sudoku) String() string {
 	return buffer.String()
 }
 
-func NewSudokuFromFile(path string, dim int, doPrint bool) (*Sudoku, error) {
+func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
 	s.matrix, err = readMatrixFromFile(path, dim)
@@ -60,13 +60,12 @@ func NewSudokuFromFile(path string, dim int, doPrint bool) (*Sudoku, error) {
 	}
 
 	s.dim = dim
-	s.print = doPrint
 
 	return s, nil
 }
 
 // Assumes a 9x9 Sudoku board
-func NewSudokuFromString(path string, dim int, doPrint bool) (*Sudoku, error) {
+func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
 	s.matrix, err = readMatrixFromString(path, dim)
@@ -76,7 +75,6 @@ func NewSudokuFromString(path string, dim int, doPrint bool) (*Sudoku, error) {
 	}
 
 	s.dim = dim
-	s.print = doPrint
 
 	return s, nil
 }
@@ -89,7 +87,7 @@ func (s *Sudoku) GetSolutionsCount() int {
 // to preserve the solution for further processing
 func (s *Sudoku) registerSolution() {
 	s.solutionCount++
-	if s.print {
+	if s.doPrint {
 		s.PrintMatrix()
 	}
 	if !s.solved {
@@ -120,6 +118,16 @@ func (s *Sudoku) Solve() error {
 	return nil
 }
 
+func (s *Sudoku) SolveAndPrint() error {
+	s.doPrint = true
+
+	err := s.Solve()
+
+	s.doPrint = false
+
+	return err
+}
+
 func (s *Sudoku) SolveAll() error {
 
 	s.solved = false
@@ -133,6 +141,16 @@ func (s *Sudoku) SolveAll() error {
 	s.bruteforcePosition(0, 0)
 
 	return nil
+}
+
+func (s *Sudoku) SolveAllAndPrint() error {
+	s.doPrint = true
+
+	err := s.SolveAll()
+
+	s.doPrint = false
+
+	return err
 }
 
 func (s *Sudoku) bruteforcePosition(row, col int) {
