@@ -14,6 +14,7 @@ type Sudoku struct {
 	solutionCount int
 	print         bool
 	dim           int
+	solveAll      bool
 }
 type Matrix [][]int
 
@@ -24,20 +25,20 @@ func (s *Sudoku) PrintMatrix() {
 	fmt.Println("")
 }
 
-func (s *Sudoku) IsValidBoard() (bool, err) {
+func (s *Sudoku) IsValidBoard() bool {
 	if s.matrix == nil {
-		return false, fmt.Errorf("Matrix has not been initialized")
+		return false
 	}
 
 	for i, row := range s.matrix {
 		for j, val := range row {
 			if !s.ValidValueAtPosition(i, j, val) {
-				return false, nil
+				return false
 			}
 		}
 	}
 
-	return true, nil
+	return true
 }
 
 func (s *Sudoku) String() string {
@@ -111,6 +112,24 @@ func (s *Sudoku) Solve() error {
 	if s.matrix == nil {
 		return fmt.Errorf("No matrix has been loaded..")
 	}
+
+	s.solveAll = false
+
+	s.bruteforcePosition(0, 0)
+
+	return nil
+}
+
+func (s *Sudoku) SolveAll() error {
+
+	s.solved = false
+
+	if s.matrix == nil {
+		return fmt.Errorf("No matrix has been loaded..")
+	}
+
+	s.solveAll = true
+
 	s.bruteforcePosition(0, 0)
 
 	return nil
@@ -125,6 +144,13 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 				s.matrix[row][col] = i
 				// attempt to solve the sudoku with placed value
 				s.nextPosition(row, col)
+
+				if s.solved && !s.solveAll {
+					// if Solve() was used, we break
+					// after first solution
+					return
+				}
+
 				// clean up after attempt
 				s.matrix[row][col] = 0
 			}
