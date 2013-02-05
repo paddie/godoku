@@ -9,38 +9,38 @@ import (
 )
 
 type Sudoku struct {
-	matrix        Matrix
+	board         Matrix
 	solved        bool
 	solutionCount int
 	doPrint       bool
 	dim           int
 	solveAll      bool
 }
+
 type Matrix [][]int
 
 func (s *Sudoku) PrintMatrix() {
-	for _, row := range s.matrix {
+	for _, row := range s.board {
 		fmt.Println(row)
 	}
 	fmt.Println("")
 }
 
 func (s *Sudoku) IsValidBoard() bool {
-	if s.matrix == nil {
+	if s.board == nil {
 		return false
 	}
-
-	for i, row := range s.matrix {
+	for i, row := range s.board {
 		for j, val := range row {
 			if val == 0 {
 				continue
 			}
-			s.matrix[i][j] = 0
+			s.board[i][j] = 0
 			if !s.ValidValueAtPosition(i, j, val) {
-				s.matrix[i][j] = val
+				s.board[i][j] = val
 				return false
 			}
-			s.matrix[i][j] = val
+			s.board[i][j] = val
 		}
 	}
 
@@ -49,7 +49,7 @@ func (s *Sudoku) IsValidBoard() bool {
 
 func (s *Sudoku) String() string {
 	var buffer bytes.Buffer
-	for _, row := range s.matrix {
+	for _, row := range s.board {
 		buffer.WriteString(fmt.Sprintf("%v\n", row))
 	}
 	buffer.WriteString("\n")
@@ -59,7 +59,7 @@ func (s *Sudoku) String() string {
 func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
-	s.matrix, err = readMatrixFromFile(path, dim)
+	s.board, err = readMatrixFromFile(path, dim)
 
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
 func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
-	s.matrix, err = readMatrixFromString(path, dim)
+	s.board, err = readMatrixFromString(path, dim)
 
 	if err != nil {
 		return nil, err
@@ -99,6 +99,7 @@ func (s *Sudoku) registerSolution() {
 	if !s.solved {
 		s.solved = true
 	}
+
 }
 
 func (s *Sudoku) IsSolved() bool {
@@ -113,7 +114,7 @@ func (s *Sudoku) Solve() error {
 
 	s.solved = false
 
-	if s.matrix == nil {
+	if s.board == nil {
 		return fmt.Errorf("No matrix has been loaded..")
 	}
 
@@ -138,7 +139,7 @@ func (s *Sudoku) SolveAll() error {
 
 	s.solved = false
 
-	if s.matrix == nil {
+	if s.board == nil {
 		return fmt.Errorf("No matrix has been loaded..")
 	}
 
@@ -161,11 +162,11 @@ func (s *Sudoku) SolveAllAndPrint() error {
 
 func (s *Sudoku) bruteforcePosition(row, col int) {
 	// we use '0' to indicate a non-filled block
-	if s.matrix[row][col] == 0 {
+	if s.board[row][col] == 0 {
 		for i := 1; i < 10; i++ {
 			if s.ValidValueAtPosition(row, col, i) {
 				// place the value and attempt to solve
-				s.matrix[row][col] = i
+				s.board[row][col] = i
 				// attempt to solve the sudoku with placed value
 				s.nextPosition(row, col)
 
@@ -176,7 +177,7 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 				}
 
 				// clean up after attempt
-				s.matrix[row][col] = 0
+				s.board[row][col] = 0
 			}
 		}
 	} else {
@@ -228,7 +229,7 @@ func (s *Sudoku) ValidInSquare(row, col, val int) bool {
 	for i := row; i < row+3; i++ {
 		for j := col; j < col+3; j++ {
 			//fmt.Printf("row, col = %v, %v\n", i, j)
-			if s.matrix[i][j] == val {
+			if s.board[i][j] == val {
 				return false
 			}
 		}
@@ -239,8 +240,8 @@ func (s *Sudoku) ValidInSquare(row, col, val int) bool {
 // Checks if 'val' already occurs in either the row or the column.
 func (s *Sudoku) ValidInColumnAndRow(row, col, val int) bool {
 	for i := 0; i < 9; i++ {
-		if s.matrix[row][i] == val ||
-			s.matrix[i][col] == val {
+		if s.board[row][i] == val ||
+			s.board[i][col] == val {
 			return false
 		}
 	}

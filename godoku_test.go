@@ -105,7 +105,7 @@ func TestFail(t *testing.T) {
 }
 
 func TestInvalidBoard(t *testing.T) {
-	// load sudoku
+	// test that invalid board is invalid
 	s, err := NewSudokuFromString(invalidBoard, 9)
 	if err != nil {
 		t.Error(err)
@@ -113,7 +113,7 @@ func TestInvalidBoard(t *testing.T) {
 	if s.IsValidBoard() {
 		t.Errorf("Expected: 'false' != Actual: %v", s.IsValidBoard())
 	}
-
+	// test that valid board is not invalid
 	s, err = NewSudokuFromString(solvable88, 9)
 	if err != nil {
 		t.Error(err)
