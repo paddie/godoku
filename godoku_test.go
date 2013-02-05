@@ -113,6 +113,14 @@ func TestInvalidBoard(t *testing.T) {
 	if s.IsValidBoard() {
 		t.Errorf("Expected: 'false' != Actual: %v", s.IsValidBoard())
 	}
+
+	s, err = NewSudokuFromString(solvable88, 9)
+	if err != nil {
+		t.Error(err)
+	}
+	if !s.IsValidBoard() {
+		t.Errorf("Expected: 'true' != Actual: %v", s.IsValidBoard())
+	}
 }
 
 func BenchmarkSolveHard(b *testing.B) {

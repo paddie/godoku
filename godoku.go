@@ -32,9 +32,15 @@ func (s *Sudoku) IsValidBoard() bool {
 
 	for i, row := range s.matrix {
 		for j, val := range row {
+			if val == 0 {
+				continue
+			}
+			s.matrix[i][j] = 0
 			if !s.ValidValueAtPosition(i, j, val) {
+				s.matrix[i][j] = val
 				return false
 			}
+			s.matrix[i][j] = val
 		}
 	}
 
