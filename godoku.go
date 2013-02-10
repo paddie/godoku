@@ -259,7 +259,7 @@ func readMatrixFromString(m string, dim int) (Matrix, error) {
 	lines := strings.Split(m, "\n")
 
 	if len(lines) < dim {
-		return nil, fmt.Errorf("row count of input matrix does not match dim: %v", dim)
+		return nil, fmt.Errorf("row count of input: %v does not match dim: %v", len(lines), dim)
 	}
 
 	matrix := make(Matrix, dim, dim)
@@ -268,7 +268,7 @@ func readMatrixFromString(m string, dim int) (Matrix, error) {
 		stringRows := strings.Split(lines[i], " ")
 
 		if len(stringRows) < dim {
-			return nil, fmt.Errorf("column count of input matrix does not match dim: %v", dim)
+			return nil, fmt.Errorf("column count of input: %v does not match dim: %v", len(lines[i]), dim)
 		}
 
 		integerRow := make([]int, dim, dim)

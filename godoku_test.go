@@ -12,7 +12,7 @@ const solvable88 string = `0 7 0 0 0 0 0 8 0
 5 0 0 2 4 9 0 1 0
 0 1 0 0 0 0 0 9 0`
 
-const badDim string = `0 7 0 0 0 0 0 8 0
+const badRow string = `0 7 0 0 0 0 0 8 0
 0 3 0 7 6 2 0 0 1
 0 0 1 9 8 0 0 0 0
 1 0 0 0 0 0 0 0
@@ -21,6 +21,15 @@ const badDim string = `0 7 0 0 0 0 0 8 0
 0 0 0 0 3 1 6 0 0
 5 0 0 2 4 9 0 1 0
 0 1 0 0 0 0 0 9 0`
+
+const badCol string = `0 7 0 0 0 0 0 8 0
+0 3 0 7 6 2 0 0 1
+0 0 1 9 8 0 0 0 0
+1 0 0 0 0 0 0 0 0
+8 0 3 0 0 0 0 0 2
+0 0 6 0 0 0 0 0 8
+0 0 0 0 3 1 6 0 0
+5 0 0 2 4 9 0 1 0`
 
 const hard string = `0 0 0 0 0 0 0 0 0
 0 0 1 0 0 3 0 0 0
@@ -105,8 +114,12 @@ func TestBadFormatting(t *testing.T) {
 }
 
 // test that provided sudoku has at least Dim x Dim dimension
-func TestBadDim(t *testing.T) {
-	_, err := NewSudokuFromString(badDim, 9)
+func TestBadDims(t *testing.T) {
+	_, err := NewSudokuFromString(badRow, 9)
+	if err == nil {
+		t.Error(err)
+	}
+	_, err = NewSudokuFromString(badCol, 9)
 	if err == nil {
 		t.Error(err)
 	}
