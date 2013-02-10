@@ -99,7 +99,6 @@ func (s *Sudoku) registerSolution() {
 	if !s.solved {
 		s.solved = true
 	}
-
 }
 
 func (s *Sudoku) IsSolved() bool {
@@ -258,10 +257,19 @@ func readMatrixFromFile(path string, dim int) (Matrix, error) {
 
 func readMatrixFromString(m string, dim int) (Matrix, error) {
 	lines := strings.Split(m, "\n")
+
+	if len(lines) < dim {
+		return nil, fmt.Errorf("row count of input matrix does not match dim: %v", dim)
+	}
+
 	matrix := make(Matrix, dim, dim)
 
 	for i := 0; i < dim; i++ {
 		stringRows := strings.Split(lines[i], " ")
+
+		if len(stringRows) < dim {
+			return nil, fmt.Errorf("column count of input matrix does not match dim: %v", dim)
+		}
 
 		integerRow := make([]int, dim, dim)
 		for j := 0; j < dim; j++ {
