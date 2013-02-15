@@ -55,8 +55,8 @@ func (s *Sudoku) IsValidBoard() bool {
 
 // String returns either the unsolved board if the
 // sudoku has not been solved, or the solution 
-// if such a solution has been found
-// - by running one of the Solve* methods.
+// if such a solution has been found 
+// (by running one of the Solve* methods)
 func (s *Sudoku) String() string {
 	var buffer bytes.Buffer
 	if s.solved {
@@ -72,6 +72,8 @@ func (s *Sudoku) String() string {
 	return buffer.String()
 }
 
+// GetSolution returns the solution
+// BUG(paddie): doesn't check if board is solved
 func (s *Sudoku) GetSolution() Board {
 	return s.solution
 }
@@ -90,9 +92,8 @@ func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
 	return s, nil
 }
 
-// Load a board given a string-representation of a sudoku board
-// - values in a 9x9 matrix, using space " " as delimiters
-//   and '\n' as linebreaks
+// Loads a sudoku-board in a string-representation;
+// The values are in a 9x9 matrix, using space " " as delimiters and '\n' as linebreaks
 func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
@@ -106,11 +107,12 @@ func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	return s, nil
 }
 
-// Returns the number of solutions found
-// - returns 0 if a Solve() call has not been made
-//   and if the Sudoku has no solutions
-// - if not it returns the number of solutions found
-//   (Solutions can vary from Find() to FindAll() calls)
+// Returns the number of solutions found. 
+// Returns 0 if a Solve() call has not been made
+// and if the Sudoku has no solutions. If at least one solution
+// has been found, the number of solutions are returned
+// (The number of solutions obviously vary depending if 
+// Find() or FindAll() was used.
 func (s *Sudoku) GetSolutionsCount() int {
 	return s.solutionCount
 }
@@ -146,8 +148,7 @@ func (s *Sudoku) Dimension() int {
 	return s.dim
 }
 
-// Solve and store the solution
-// - returns an error if no Sudoku has been loaded
+// Solve and save the solution. Returns an error if no Sudoku has been loaded
 func (s *Sudoku) Solve() error {
 
 	s.solved = false
@@ -163,7 +164,7 @@ func (s *Sudoku) Solve() error {
 	return nil
 }
 
-// Same as Solve() but this one also prints
+// Same as Solve(), but this one also prints
 // the solution to stdin
 func (s *Sudoku) SolveAndPrint() error {
 	s.doPrint = true
@@ -176,8 +177,7 @@ func (s *Sudoku) SolveAndPrint() error {
 }
 
 // Same as Solve, but keeps running until it has all
-// the solutions and keeps a count
-// - only saves the first solution
+// the solutions and keeps a count. It only saves the first solution
 func (s *Sudoku) SolveAll() error {
 
 	s.solved = false
@@ -232,10 +232,10 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 }
 
 // Does two things:
-//	1) if the board is in a finished state, calls 
-//     registerSolution() and returns - enables
-//     bruteforcePostion to exhaust every remaining permutation
-//	2) checks wether to move to next column or next row
+// 1) if the board is in a finished state, calls 
+// registerSolution() and returns - enables
+// bruteforcePostion to exhaust every remaining permutation
+// 2) checks wether to move to next column or next row
 func (s *Sudoku) nextPosition(row, col int) {
 	// we run through the Board row by row
 	// meaning we only change rows when we're in
