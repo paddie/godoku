@@ -1,4 +1,4 @@
-// Package godoku is a simple brute-force
+// Package godoku is a simple, brute-force,
 // in-place sudoku solver
 package godoku
 
@@ -55,8 +55,8 @@ func (s *Sudoku) IsValidBoard() bool {
 
 // String returns either the unsolved board if the
 // sudoku has not been solved, or the solution 
-// if such a solution has been found 
-// (by running one of the Solve* methods)
+// if such a solution has been found
+// by running one of the Solve* methods.
 func (s *Sudoku) String() string {
 	var buffer bytes.Buffer
 	if s.solved {
@@ -107,12 +107,9 @@ func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	return s, nil
 }
 
-// Returns the number of solutions found. 
-// Returns 0 if a Solve() call has not been made
-// and if the Sudoku has no solutions. If at least one solution
-// has been found, the number of solutions are returned
-// (The number of solutions obviously vary depending if 
-// Find() or FindAll() was used.
+/* 
+Returns the number of solutions found.
+*/
 func (s *Sudoku) GetSolutionsCount() int {
 	return s.solutionCount
 }
@@ -158,7 +155,6 @@ func (s *Sudoku) Solve() error {
 	}
 
 	s.solveAll = false
-
 	s.bruteforcePosition(0, 0)
 
 	return nil
@@ -221,7 +217,6 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 					s.board[row][col] = 0
 					return
 				}
-
 				// clean up after attempt
 				s.board[row][col] = 0
 			}
@@ -232,9 +227,11 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 }
 
 // Does two things:
+//
 // 1) if the board is in a finished state, calls 
-// registerSolution() and returns - enables
-// bruteforcePostion to exhaust every remaining permutation
+// registerSolution() and returns; 
+// enables bruteforcePostion to exhaust every remaining permutation
+// 
 // 2) checks wether to move to next column or next row
 func (s *Sudoku) nextPosition(row, col int) {
 	// we run through the Board row by row
@@ -254,7 +251,7 @@ func (s *Sudoku) nextPosition(row, col int) {
 	}
 }
 
-// Verify that *val* can be legally placed at (row,col)
+// Verify that _val_ can be legally placed at (row,col)
 // given restrictions in column, row and 3x3 square
 func (s *Sudoku) ValidValueAtPosition(row, col, val int) bool {
 	if s.ValidInSquare(row, col, val) &&
@@ -266,7 +263,7 @@ func (s *Sudoku) ValidValueAtPosition(row, col, val int) bool {
 	return false
 }
 
-// Checks that the *val* does not already occur in the
+// Checks that the _val_ does not already occur in the
 // active 3x3 square
 func (s *Sudoku) ValidInSquare(row, col, val int) bool {
 	row, col = int(row/3)*3, int(col/3)*3
@@ -282,7 +279,7 @@ func (s *Sudoku) ValidInSquare(row, col, val int) bool {
 	return true
 }
 
-// Checks if *val* already occurs in either the row or the column.
+// Checks if _val_ already occurs in either the row or the column.
 func (s *Sudoku) ValidInColumnAndRow(row, col, val int) bool {
 	for i := 0; i < 9; i++ {
 		if s.board[row][i] == val ||
