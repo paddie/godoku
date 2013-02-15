@@ -37,10 +37,13 @@ func main() {
 		return
 	}
 
-	s.PrintMatrix()
+	fmt.Println(s)
 
-	// prints only the first solution
-	s.SolveAndPrint()
+	// solve the board
+	s.Solve()
+	
+	// print the solution
+	fmt.Println(s)
 
 	// checks the number of solutions; 1 in this case
 	if s.GetSolutionsCount() != 1 {
