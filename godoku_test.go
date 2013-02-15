@@ -98,9 +98,6 @@ func TestSolve1(t *testing.T) {
 	if s.GetSolutionsCount() != 1 {
 		t.Errorf("Expected 1 != Actual %v", s.GetSolutionsCount())
 	}
-
-	// fmt.Println(s)
-
 	if s.String() != solution {
 		t.Errorf("Expected\n%v != Actual \n%v", solution, s)
 	}
@@ -117,7 +114,8 @@ func TestSolve88(t *testing.T) {
 	if s.GetSolutionsCount() != 88 {
 		t.Errorf("Expected 88 != Actual %v", s.GetSolutionsCount())
 	}
-
+	// should be the first solution and not the 88th solution
+	// - same as testsolve01
 	if s.String() != solution {
 		t.Errorf("Expected\n%v != Actual \n%v", solution, s)
 	}

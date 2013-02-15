@@ -11,16 +11,16 @@ import (
 )
 
 type Sudoku struct {
-	board         Matrix
+	board         Board
 	solved        bool
 	solutionCount int
 	doPrint       bool
 	dim           int
 	solveAll      bool
-	solution      Matrix
+	solution      Board
 }
 
-type Matrix [][]int
+type Board [][]int
 
 func (s *Sudoku) PrintBoard() {
 	for _, row := range s.board {
@@ -29,6 +29,9 @@ func (s *Sudoku) PrintBoard() {
 	fmt.Println("")
 }
 
+// IsValidBoard iterates through all initial 
+// values on the board and verifies that they indeed
+// abide by the 3 laws of Sudoku
 func (s *Sudoku) IsValidBoard() bool {
 	if s.board == nil {
 		return false
@@ -50,6 +53,10 @@ func (s *Sudoku) IsValidBoard() bool {
 	return true
 }
 
+// String returns either the unsolved board if the
+// sudoku has not been solved, or the solution 
+// if such a solution has been found
+// - by running one of the Solve* methods.
 func (s *Sudoku) String() string {
 	var buffer bytes.Buffer
 	if s.solved {
@@ -65,14 +72,15 @@ func (s *Sudoku) String() string {
 	return buffer.String()
 }
 
-func (s *Sudoku) GetSolution() Matrix {
+func (s *Sudoku) GetSolution() Board {
 	return s.solution
 }
 
+// Load a sudoku from a path and a dimension argument
 func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
-	s.board, err = readMatrixFromFile(path, dim)
+	s.board, err = readBoardFromFile(path, dim)
 
 	if err != nil {
 		return nil, err
@@ -82,13 +90,13 @@ func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
 	return s, nil
 }
 
-// NewSudokuFromString creates a Sudoku board from the provided
-// string and dimension arguments
-// - returns an error on format errors etc.
+// Load a board given a string-representation of a sudoku board
+// - values in a 9x9 matrix, using space ' ' as delimiters
+//   and '\n' as linebreaks
 func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
-	s.board, err = readMatrixFromString(path, dim)
+	s.board, err = readBoardFromString(path, dim)
 
 	if err != nil {
 		return nil, err
@@ -98,12 +106,17 @@ func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	return s, nil
 }
 
+// Returns the number of solutions found
+// - returns 0 if a Solve() call has not been made
+//   and if the Sudoku has no solutions
+// - if not it returns the number of solutions found
+//   (Solutions can vary from Find() to FindAll() calls)
 func (s *Sudoku) GetSolutionsCount() int {
 	return s.solutionCount
 }
 
-// Could potentially make a copy of the matrix at this point
-// to preserve the solution for further processing
+// registers the first solutions in the s.solution
+// board, and prints if doPrint is set.
 func (s *Sudoku) registerSolution() {
 	s.solutionCount++
 	if s.doPrint {
@@ -115,7 +128,7 @@ func (s *Sudoku) registerSolution() {
 	}
 
 	s.solved = true
-	s.solution = make(Matrix, 9, 9)
+	s.solution = make(Board, 9, 9)
 
 	for i, row := range s.board {
 		s.solution[i] = make([]int, 9, 9)
@@ -123,20 +136,24 @@ func (s *Sudoku) registerSolution() {
 	}
 }
 
+// Check if the solver has found a solution
 func (s *Sudoku) IsSolved() bool {
 	return s.solved
 }
 
+// The dimensions of the sudoku board
 func (s *Sudoku) Dimension() int {
 	return s.dim
 }
 
+// Solve and store the solution
+// - returns an error if no Sudoku has been loaded
 func (s *Sudoku) Solve() error {
 
 	s.solved = false
 
 	if s.board == nil {
-		return fmt.Errorf("No matrix has been loaded..")
+		return fmt.Errorf("No Board has been loaded..")
 	}
 
 	s.solveAll = false
@@ -146,6 +163,8 @@ func (s *Sudoku) Solve() error {
 	return nil
 }
 
+// Same as Solve() but this one also prints
+// the solution to stdin
 func (s *Sudoku) SolveAndPrint() error {
 	s.doPrint = true
 
@@ -156,12 +175,15 @@ func (s *Sudoku) SolveAndPrint() error {
 	return err
 }
 
+// Same as Solve, but keeps running until it has all
+// the solutions and keeps a count
+// - only saves the first solution
 func (s *Sudoku) SolveAll() error {
 
 	s.solved = false
 
 	if s.board == nil {
-		return fmt.Errorf("No matrix has been loaded..")
+		return fmt.Errorf("No Board has been loaded..")
 	}
 
 	s.solveAll = true
@@ -171,6 +193,8 @@ func (s *Sudoku) SolveAll() error {
 	return nil
 }
 
+// Same as SolveAll but prints all the solutions
+// to stdin
 func (s *Sudoku) SolveAllAndPrint() error {
 	s.doPrint = true
 
@@ -213,7 +237,7 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 //		bruteforcePostion to exhaust every remaining permutation
 //	2) checks wether to move to next column or next row
 func (s *Sudoku) nextPosition(row, col int) {
-	// we run through the matrix row by row
+	// we run through the Board row by row
 	// meaning we only change rows when we're in
 	// the final column
 	if col < 8 {
@@ -230,21 +254,20 @@ func (s *Sudoku) nextPosition(row, col int) {
 	}
 }
 
-// Verify that 'val' can be legally placed at (row,col)
+// Verify that *val* can be legally placed at (row,col)
 // given restrictions in column, row and 3x3 square
 func (s *Sudoku) ValidValueAtPosition(row, col, val int) bool {
 	if s.ValidInSquare(row, col, val) &&
 		s.ValidInColumnAndRow(row, col, val) {
-		// validInRow(row, val, matrix) {
+		// validInRow(row, val, Board) {
 		return true
 	}
 
 	return false
 }
 
-// Checks that the 'val' does not already occur in the
-// active 3x3 square.
-// TODO: make square validate sudoku boards of random size
+// Checks that the *val* does not already occur in the
+// active 3x3 square
 func (s *Sudoku) ValidInSquare(row, col, val int) bool {
 	row, col = int(row/3)*3, int(col/3)*3
 
@@ -259,7 +282,7 @@ func (s *Sudoku) ValidInSquare(row, col, val int) bool {
 	return true
 }
 
-// Checks if 'val' already occurs in either the row or the column.
+// Checks if *val* already occurs in either the row or the column.
 func (s *Sudoku) ValidInColumnAndRow(row, col, val int) bool {
 	for i := 0; i < 9; i++ {
 		if s.board[row][i] == val ||
@@ -270,22 +293,22 @@ func (s *Sudoku) ValidInColumnAndRow(row, col, val int) bool {
 	return true
 }
 
-func readMatrixFromFile(path string, dim int) (Matrix, error) {
+func readBoardFromFile(path string, dim int) (Board, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	return readMatrixFromString(string(content), dim)
+	return readBoardFromString(string(content), dim)
 }
 
-func readMatrixFromString(m string, dim int) (Matrix, error) {
+func readBoardFromString(m string, dim int) (Board, error) {
 	lines := strings.Split(m, "\n")
 
 	if len(lines) < dim {
 		return nil, fmt.Errorf("row count of input: %v does not match dim: %v", len(lines), dim)
 	}
 
-	matrix := make(Matrix, dim, dim)
+	Board := make(Board, dim, dim)
 
 	for i := 0; i < dim; i++ {
 		stringRows := strings.Split(lines[i], " ")
@@ -303,7 +326,7 @@ func readMatrixFromString(m string, dim int) (Matrix, error) {
 			}
 			integerRow[j] = val
 		}
-		matrix[i] = integerRow
+		Board[i] = integerRow
 	}
-	return matrix, nil
+	return Board, nil
 }
