@@ -1,3 +1,5 @@
+// Package godoku is a simple brute-force
+// in-place sudoku solver
 package godoku
 
 import (
@@ -15,11 +17,12 @@ type Sudoku struct {
 	doPrint       bool
 	dim           int
 	solveAll      bool
+	solution      Matrix
 }
 
 type Matrix [][]int
 
-func (s *Sudoku) PrintMatrix() {
+func (s *Sudoku) PrintBoard() {
 	for _, row := range s.board {
 		fmt.Println(row)
 	}
@@ -49,11 +52,21 @@ func (s *Sudoku) IsValidBoard() bool {
 
 func (s *Sudoku) String() string {
 	var buffer bytes.Buffer
+	if s.solved {
+		for _, row := range s.solution {
+			buffer.WriteString(fmt.Sprintf("%v\n", row))
+		}
+		return buffer.String()
+	}
+
 	for _, row := range s.board {
 		buffer.WriteString(fmt.Sprintf("%v\n", row))
 	}
-	buffer.WriteString("\n")
 	return buffer.String()
+}
+
+func (s *Sudoku) GetSolution() Matrix {
+	return s.solution
 }
 
 func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
@@ -64,13 +77,14 @@ func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	s.dim = dim
 
 	return s, nil
 }
 
-// Assumes a 9x9 Sudoku board
+// NewSudokuFromString creates a Sudoku board from the provided
+// string and dimension arguments
+// - returns an error on format errors etc.
 func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
 	var err error
@@ -79,7 +93,6 @@ func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	s.dim = dim
 
 	return s, nil
@@ -94,10 +107,19 @@ func (s *Sudoku) GetSolutionsCount() int {
 func (s *Sudoku) registerSolution() {
 	s.solutionCount++
 	if s.doPrint {
-		s.PrintMatrix()
+		s.PrintBoard()
 	}
-	if !s.solved {
-		s.solved = true
+
+	if s.solved {
+		return
+	}
+
+	s.solved = true
+	s.solution = make(Matrix, 9, 9)
+
+	for i, row := range s.board {
+		s.solution[i] = make([]int, 9, 9)
+		copy(s.solution[i], row)
 	}
 }
 
@@ -172,6 +194,7 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 				if s.solved && !s.solveAll {
 					// if Solve() was used, we break
 					// after first solution
+					s.board[row][col] = 0
 					return
 				}
 

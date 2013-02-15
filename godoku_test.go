@@ -1,6 +1,9 @@
 package godoku
 
-import "testing"
+import (
+	// "fmt"
+	"testing"
+)
 
 const solvable88 string = `0 7 0 0 0 0 0 8 0
 0 3 0 7 6 2 0 0 1
@@ -72,9 +75,20 @@ const noSolution string = `7 0 8 0 0 0 7 0 0
 5 0 6 0 4 9 8 1 7
 3 1 4 8 7 0 5 9 2`
 
+// solution output
+const solution string = `[2 7 9 1 5 3 4 8 6]
+[4 3 8 7 6 2 9 5 1]
+[6 5 1 9 8 4 3 2 7]
+[1 4 5 3 2 8 7 6 9]
+[8 9 3 6 1 7 5 4 2]
+[7 2 6 4 9 5 1 3 8]
+[9 8 2 5 3 1 6 7 4]
+[5 6 7 2 4 9 8 1 3]
+[3 1 4 8 7 6 2 9 5]
+`
+
 // solve only one of the 88 solutions
 func TestSolve1(t *testing.T) {
-	// load sudoku
 	s, err := NewSudokuFromString(solvable88, 9)
 	if err != nil {
 		t.Error(err)
@@ -84,11 +98,16 @@ func TestSolve1(t *testing.T) {
 	if s.GetSolutionsCount() != 1 {
 		t.Errorf("Expected 1 != Actual %v", s.GetSolutionsCount())
 	}
+
+	// fmt.Println(s)
+
+	if s.String() != solution {
+		t.Errorf("Expected\n%v != Actual \n%v", solution, s)
+	}
 }
 
 // make sure that the solver gets all 88 solutions
 func TestSolve88(t *testing.T) {
-	// load sudoku
 	s, err := NewSudokuFromString(solvable88, 9)
 	if err != nil {
 		t.Error(err)
@@ -97,6 +116,10 @@ func TestSolve88(t *testing.T) {
 
 	if s.GetSolutionsCount() != 88 {
 		t.Errorf("Expected 88 != Actual %v", s.GetSolutionsCount())
+	}
+
+	if s.String() != solution {
+		t.Errorf("Expected\n%v != Actual \n%v", solution, s)
 	}
 }
 
