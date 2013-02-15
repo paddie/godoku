@@ -91,7 +91,7 @@ func NewSudokuFromFile(path string, dim int) (*Sudoku, error) {
 }
 
 // Load a board given a string-representation of a sudoku board
-// - values in a 9x9 matrix, using space ' ' as delimiters
+// - values in a 9x9 matrix, using space " " as delimiters
 //   and '\n' as linebreaks
 func NewSudokuFromString(path string, dim int) (*Sudoku, error) {
 	s := new(Sudoku)
@@ -233,8 +233,8 @@ func (s *Sudoku) bruteforcePosition(row, col int) {
 
 // Does two things:
 //	1) if the board is in a finished state, calls 
-//		registerSolution() and returns - enables
-//		bruteforcePostion to exhaust every remaining permutation
+//     registerSolution() and returns - enables
+//     bruteforcePostion to exhaust every remaining permutation
 //	2) checks wether to move to next column or next row
 func (s *Sudoku) nextPosition(row, col int) {
 	// we run through the Board row by row
