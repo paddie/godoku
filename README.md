@@ -1,7 +1,9 @@
 godoku
 ======
 
-Sudoku solver in Golang
+Sudoku solver in Golang.
+
+See [Documentation](http://godoc.org/github.com/paddie/godoku) on [GoDoc.org](http://godoc.org/).
 
 Example:
 =======
