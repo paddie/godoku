@@ -26,7 +26,6 @@ func (s *Sudoku) PrintBoard() {
 	for _, row := range s.board {
 		fmt.Println(row)
 	}
-	fmt.Println("")
 }
 
 // IsValidBoard iterates through all initial 
